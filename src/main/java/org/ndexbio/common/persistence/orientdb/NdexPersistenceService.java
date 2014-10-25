@@ -213,8 +213,8 @@ public class NdexPersistenceService extends PersistenceService {
 		OrientVertex nodeV = graph.getVertex(nodeDoc);
 		
 		ODocument bTermDoc = elementIdCache.get(baseTermId);
-		if(bTermDoc.getClassName() != NdexClasses.BaseTerm)
-			throw new NdexException ("Element "+ baseTermId +" is not a base term. It is " + 
+		if(!bTermDoc.getClassName().equals(NdexClasses.BaseTerm))
+			throw new NdexException ("Element "+ baseTermId +" is not an instance of  baseTerm. It is " + 
 							bTermDoc.getClassName() );
     	OrientVertex bV = graph.getVertex(bTermDoc);
 		nodeV.addEdge(NdexClasses.Node_E_alias, bV);
@@ -316,7 +316,7 @@ public class NdexPersistenceService extends PersistenceService {
        	return v;
 	}
 
-	// alias is treated as a baseTerm
+	// related term is assumed to be a base term
 	public void addRelatedTermToNode(long nodeId, String[] relatedTerms) throws ExecutionException, NdexException {
 		ODocument nodeDoc = elementIdCache.get(nodeId);
 		OrientVertex nodeV = graph.getVertex(nodeDoc);
@@ -330,7 +330,7 @@ public class NdexPersistenceService extends PersistenceService {
 		elementIdCache.put(nodeId, nodeV.getRecord());
 	}
 
-	// alias is treated as a baseTerm
+	// related term is assumed to be a base term
 	public void addRelatedTermToNode(long nodeId, long baseTermId ) throws ExecutionException {
 		ODocument nodeDoc = elementIdCache.get(nodeId);
 		OrientVertex nodeV = graph.getVertex(nodeDoc);
@@ -340,7 +340,8 @@ public class NdexPersistenceService extends PersistenceService {
 		elementIdCache.put(nodeId, nodeV.getRecord());
 	}
 	
-	// alias is treated as a baseTerm
+	// related term is assumed to be a base term but its not clear that 
+	// we actually constrain the type of the related term
 	private void addRelatedTermToNode(OrientVertex nodeV, long baseTermId ) throws ExecutionException {
 		ODocument bDoc = elementIdCache.get(baseTermId);
 		OrientVertex bV = graph.getVertex(bDoc);
@@ -1046,6 +1047,13 @@ public class NdexPersistenceService extends PersistenceService {
 
 	}
 	
+	public void setNetworkVisibility(VisibilityType visibility) {
+
+		this.networkDoc = this.networkDoc.field(NdexClasses.Network_P_visibility, visibility)
+				.save();
+
+	}
+	
 	public void setNetworkTitleAndDescription(String title, String description) {
 	   if ( description != null ) {
 		   this.network.setDescription(description);
@@ -1096,6 +1104,14 @@ public class NdexPersistenceService extends PersistenceService {
 		OrientVertex v = graph.getVertex(nodeDoc);
 		addPropertiesToVertex ( v, properties, presentationProperties);
 		this.elementIdCache.put(nodeId, v.getRecord());
+	}
+	
+	public void setCitationProperties(Long citationId, Collection<NdexPropertyValuePair> properties, 
+			Collection<SimplePropertyValuePair> presentationProperties) throws ExecutionException, NdexException {
+		ODocument nodeDoc = this.elementIdCache.get(citationId);
+		OrientVertex v = graph.getVertex(nodeDoc);
+		addPropertiesToVertex ( v, properties, presentationProperties);
+		this.elementIdCache.put(citationId, v.getRecord());
 	}
 	
 	/**
